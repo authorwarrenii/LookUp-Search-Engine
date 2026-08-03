@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LookUp Search</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; padding: 20px; text-align: center; background-color: #1a1a1a; color: #f5f5f5; }
+        .logo { font-size: 54px; font-weight: bold; margin-bottom: 5px; letter-spacing: -1px; }
+        .logo span:nth-child(1) { color: #4285F4; } /* L */
+        .logo span:nth-child(2) { color: #EA4335; } /* o */
+        .logo span:nth-child(3) { color: #FBBC05; } /* o */
+        .logo span:nth-child(4) { color: #4285F4; } /* k */
+        .logo span:nth-child(5) { color: #34A853; } /* U */
+        .logo span:nth-child(6) { color: #EA4335; } /* p */
+        .caption { font-style: italic; color: #aaa; margin-bottom: 30px; font-size: 15px; max-width: 80%; margin-left: auto; margin-right: auto; line-height: 1.4; }
+        #search-bar { width: 80%; padding: 12px 20px; font-size: 16px; border: 1px solid #444; border-radius: 24px; outline: none; background-color: #2a2a2a; color: white; box-shadow: 0 1px 6px rgba(0,0,0,0.4); }
+        #search-bar:focus { box-shadow: 0 1px 6px rgba(66,133,244,0.4); border-color: #4285F4; }
+        #results { margin-top: 30px; text-align: left; }
+        .result-item { margin-bottom: 20px; background: #222; padding: 15px; border-radius: 8px; }
+        .result-item a { color: #8ab4f8; font-size: 18px; text-decoration: none; font-weight: bold; }
+        .result-item a:hover { text-decoration: underline; }
+        .result-item p { color: #bdc1c6; font-size: 14px; margin: 6px 0 0 0; }
+    </style>
+</head>
+<body>
+
+    <!-- Logo Section -->
+    <div class="logo">
+        <span>L</span><span>o</span><span>o</span><span>k</span><span>U</span><span>p</span>
+    </div>
+
+    <!-- Your Perfect New Funny Caption -->
+    <div class="caption">
+        "Einstein said never memorize what you can look up. So don't learn a new language, just use LookUp and delete the brain junk! 🥴"
+    </div>
+
+    <!-- Search Input -->
+    <input type="text" id="search-bar" placeholder="Clear your mind... search here..." oninput="searchEngine()">
+
+    <!-- Search Results Container -->
+    <div id="results"></div>
+
+    <script>
+        // Custom Search Index
+        const webPages = [
+            { title: "The Power of Intrinsic Motivation", url: "https://example.com", desc: "Learn how internal drive and passion beat external rewards in business leadership." },
+            { title: "Einstein's Best Lazy Hacks", url: "https://example.com", desc: "Why memorizing facts is a waste of perfectly good brain storage space." },
+            { title: "How to Build a No-Database Search Engine", url: "https://example.com", desc: "Use simple HTML and client-side JavaScript arrays to build your own mini Google clone." }
+        ];
+
+        function searchEngine() {
+            const query = document.getElementById('search-bar').value.toLowerCase();
+            const resultsContainer = document.getElementById('results');
+            resultsContainer.innerHTML = ''; 
+
+            if (query.trim() === '') return; 
+
+            const matchedPages = webPages.filter(page => 
+                page.title.toLowerCase().includes(query) || 
+                page.desc.toLowerCase().includes(query)
+            );
+
+            if (matchedPages.length === 0) {
+                resultsContainer.innerHTML = '<p style="color:#aaa; text-align:center;">No junk found matching that query.</p>';
+                return;
+            }
+
+            matchedPages.forEach(page => {
+                const item = document.createElement('div');
+                item.className = 'result-item';
+                item.innerHTML = `
+                    <a href="${page.url}" target="_blank">${page.title}</a>
+                    <p>${page.desc}</p>
+                `;
+                resultsContainer.appendChild(item);
+            });
+        }
+    </script>
+</body>
+</html>
