@@ -21,6 +21,15 @@
         .result-item a { color: #8ab4f8; font-size: 18px; text-decoration: none; font-weight: bold; }
         .result-item a:hover { text-decoration: underline; }
         .result-item p { color: #bdc1c6; font-size: 14px; margin: 6px 0 0 0; }
+        
+        /* New History Feature Styles */
+        .history-container { width: 85%; margin: 15px auto 0 auto; text-align: left; font-size: 14px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: center; }
+        .history-title { color: #777; font-weight: bold; margin-right: 4px; }
+        .history-tag { background: #333; color: #8ab4f8; padding: 4px 10px; border-radius: 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: background 0.2s; }
+        .history-tag:hover { background: #444; }
+        .clear-tag-btn { color: #ea4335; font-weight: bold; cursor: pointer; font-size: 12px; border: none; background: transparent; padding: 0; }
+        .clear-history-btn { color: #aaa; background: none; border: 1px dashed #444; padding: 4px 10px; border-radius: 12px; cursor: pointer; font-size: 12px; }
+        .clear-history-btn:hover { background: #2a2a2a; color: #fff; }
     </style>
 </head>
 <body>
@@ -30,13 +39,17 @@
         <span>L</span><span>o</span><span>o</span><span>k</span><span>U</span><span>p</span>
     </div>
 
-    <!-- Your Perfect New Funny Caption -->
+    <!-- Caption -->
     <div class="caption">
         "Einstein said never memorize what you can look up. So don't learn a new language, just use LookUp and delete the brain junk! 🥴"
     </div>
 
     <!-- Search Input -->
-    <input type="text" id="search-bar" placeholder="Clear your mind... search here..." oninput="searchEngine()">
+    <!-- Triggering logic on 'input' for filtering, and listening for 'Enter' key press to save search query -->
+    <input type="text" id="search-bar" placeholder="Clear your mind... search here..." oninput="searchEngine()" onkeydown="handleSearchKey(event)">
+
+    <!-- History Container -->
+    <div id="history-section" class="history-container"></div>
 
     <!-- Search Results Container -->
     <div id="results"></div>
@@ -49,12 +62,18 @@
             { title: "How to Build a No-Database Search Engine", url: "https://example.com", desc: "Use simple HTML and client-side JavaScript arrays to build your own mini Google clone." }
         ];
 
+        // Load history array immediately when DOM initializes
+        document.addEventListener("DOMContentLoaded", renderHistory);
+
         function searchEngine() {
             const query = document.getElementById('search-bar').value.toLowerCase();
             const resultsContainer = document.getElementById('results');
             resultsContainer.innerHTML = ''; 
 
-            if (query.trim() === '') return; 
+            if (query.trim() === '') {
+                renderHistory(); // Re-show history layout context when input clears out
+                return; 
+            }
 
             const matchedPages = webPages.filter(page => 
                 page.title.toLowerCase().includes(query) || 
@@ -75,6 +94,87 @@
                 `;
                 resultsContainer.appendChild(item);
             });
+        }
+
+        // Listens for Enter key to push queries safely into history array
+        function handleSearchKey(event) {
+            if (event.key === 'Enter') {
+                const query = document.getElementById('search-bar').value.trim();
+                if (query !== '') {
+                    saveSearchToHistory(query);
+                }
+            }
+        }
+
+        // Logic handling saving, sorting limits, and deduplication
+        function saveSearchToHistory(query) {
+            let history = JSON.parse(localStorage.getItem('lookup_history')) || [];
+            
+            // Remove previous instances to bring current terms to the top stack positioning
+            history = history.filter(item => item.toLowerCase() !== query.toLowerCase());
+            history.unshift(query);
+            
+            // Keep container clean by capping total history length to a max threshold limit
+            if (history.length > 6) {
+                history.pop();
+            }
+            
+            localStorage.setItem('lookup_history', JSON.stringify(history));
+            renderHistory();
+        }
+
+        // Renders visual historical item nodes dynamically 
+        function renderHistory() {
+            const historyContainer = document.getElementById('history-section');
+            const history = JSON.parse(localStorage.getItem('lookup_history')) || [];
+            
+            if (history.length === 0) {
+                historyContainer.innerHTML = '';
+                return;
+            }
+
+            historyContainer.innerHTML = '<span class="history-title">Recent:</span>';
+            
+            history.forEach((term, index) => {
+                const tag = document.createElement('span');
+                tag.className = 'history-tag';
+                // Triggering a search directly on clicking text values
+                tag.setAttribute('onclick', `applyHistorySearch("${term.replace(/"/g, '&quot;')}")`);
+                tag.innerHTML = `
+                    ${term}
+                    <button class="clear-tag-btn" onclick="deleteHistoryItem(event, ${index})">&times;</button>
+                `;
+                historyContainer.appendChild(tag);
+            });
+
+            // Creates a blanket option to wipe memory cleanly
+            const clearAllBtn = document.createElement('button');
+            clearAllBtn.className = 'clear-history-btn';
+            clearAllBtn.innerText = 'Clear All';
+            clearAllBtn.setAttribute('onclick', 'clearAllHistory()');
+            historyContainer.appendChild(clearAllBtn);
+        }
+
+        // Run previous searches instantly upon tag click
+        function applyHistorySearch(term) {
+            const searchBar = document.getElementById('search-bar');
+            searchBar.value = term;
+            searchEngine();
+        }
+
+        // Drops a singular array element out of localStorage
+        function deleteHistoryItem(event, index) {
+            event.stopPropagation(); // Stops parent tag onclick bubble event
+            let history = JSON.parse(localStorage.getItem('lookup_history')) || [];
+            history.splice(index, 1);
+            localStorage.setItem('lookup_history', JSON.stringify(history));
+            renderHistory();
+        }
+
+        // Completely flushes search engine database arrays stored locally inside the browser instance
+        function clearAllHistory() {
+            localStorage.removeItem('lookup_history');
+            renderHistory();
         }
     </script>
 </body>
